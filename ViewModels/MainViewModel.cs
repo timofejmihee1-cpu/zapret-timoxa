@@ -183,6 +183,7 @@ public sealed partial class MainViewModel : ObservableObject
                 OnPropertyChanged(nameof(IsGameModeActive));
                 OnPropertyChanged(nameof(GameModeStatusText));
             });
+            Task.Delay(600).ContinueWith(_ => OnUi(UpdateRamUsage));
         };
         _gameOptimizer.Start();
     }

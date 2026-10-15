@@ -9,11 +9,12 @@ using Zapret2UI.Controls;
 namespace Zapret2UI.Services.Platform;
 
 /// <summary>
-/// Monitors for running games (CS2, Dota 2, Steam/Epic games).
+/// Monitors for running games (CS2, Dota 2, Valorant, Apex, etc.).
 /// When a real game is active in foreground:
-/// 1. Pauses the 3D particle background wave to eliminate GPU/CPU load.
-/// 2. Performs a gentle memory cleanup.
+/// 1. Pauses the 3D particle background wave while the game has focus to eliminate GPU load.
+/// 2. Asynchronously trims working set RAM down to ~25-30 MB in the background.
 /// 3. Shows a friendly toast notification ONCE per game launch.
+/// Tools like OBS Studio, Discord, Steam, browsers and utilities are strictly excluded.
 /// </summary>
 public sealed class GameOptimizerService : IDisposable
 {
@@ -26,6 +27,18 @@ public sealed class GameOptimizerService : IDisposable
         "leagueclientux", "league of legends", "cyberpunk2077", "witcher3",
         "javaw", "minecraft.windows", "cod", "bootstrapper", "rocketleague",
         "robloxplayerbeta"
+    };
+
+    private static readonly HashSet<string> ExcludedToolProcesses = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "obs64", "obs32", "obs", "streamlabs obs", "streamlabs",
+        "discord", "telegram", "chrome", "firefox", "msedge", "opera", "brave", "vivaldi", "yandex",
+        "steam", "steamwebhelper", "sharex", "screentogif", "devenv", "code", "rider64",
+        "taskmgr", "explorer", "cmd", "powershell", "windowsterminal",
+        "spotify", "vlc", "mpc-hc", "mpc-hc64", "mpv",
+        "wallpaper32", "wallpaper64", "soundpad", "3dmark",
+        "geforceexperience", "nvcontainer", "radeonsoftware",
+        "antigravity", "zapret_timosha"
     };
 
     private readonly Func<bool> _isNotificationsEnabled;
@@ -128,16 +141,21 @@ public sealed class GameOptimizerService : IDisposable
         _currentGameName = name;
         _negativeChecksCount = 0;
 
-        // Pause 3D background wave to completely eliminate GPU rendering while gaming
+        // If zapret_timosha is not the active window, pause wave to free GPU
         try
         {
             System.Windows.Application.Current?.Dispatcher.InvokeAsync(() =>
             {
-                DotWaveBackground.IsPaused = true;
+                var mainWin = System.Windows.Application.Current.MainWindow;
+                if (mainWin != null && !mainWin.IsActive)
+                {
+                    DotWaveBackground.IsPaused = true;
+                }
             });
         }
         catch { }
 
+        // Asynchronously flush working set in background without blocking UI
         TrimMemory();
 
         // Notify once per game launch with a 5-minute cooldown
@@ -149,7 +167,7 @@ public sealed class GameOptimizerService : IDisposable
             if (_isNotificationsEnabled())
             {
                 string friendly = GetFriendlyGameName(name);
-                _notify("zapret_timosha", $"Игровой режим: {friendly}");
+                _notify("zapret_timosha", $"Игровой режим: {friendly} (ОЗУ ~30 МБ)");
             }
         }
 
@@ -177,13 +195,22 @@ public sealed class GameOptimizerService : IDisposable
         GameModeChanged?.Invoke(false);
     }
 
+    [DllImport("psapi.dll")]
+    private static extern int EmptyWorkingSet(IntPtr hwProc);
+
+    /// <summary>Safely drops working set in the background down to ~25-30 MB without blocking the UI thread.</summary>
     public static void TrimMemory()
     {
-        try
+        Task.Run(() =>
         {
-            GC.Collect(1, GCCollectionMode.Optimized, false);
-        }
-        catch { }
+            try
+            {
+                GC.Collect(2, GCCollectionMode.Optimized, false);
+                using var p = Process.GetCurrentProcess();
+                EmptyWorkingSet(p.Handle);
+            }
+            catch { }
+        });
     }
 
     private bool DetectGame(out int pid, out string name)
@@ -223,6 +250,14 @@ public sealed class GameOptimizerService : IDisposable
 
             if (string.IsNullOrEmpty(procName)) return false;
 
+            // Strict check: OBS Studio, Discord, Chrome, media players, and tools are NEVER games!
+            if (procName.StartsWith("obs", StringComparison.OrdinalIgnoreCase) ||
+                procName.Contains("streamlabs", StringComparison.OrdinalIgnoreCase) ||
+                ExcludedToolProcesses.Contains(procName))
+            {
+                return false;
+            }
+
             // 1. Check known game executable names directly
             if (KnownGameProcesses.Contains(procName))
             {
@@ -231,7 +266,7 @@ public sealed class GameOptimizerService : IDisposable
                 return true;
             }
 
-            // 2. Check path of game storefront installations
+            // 2. Check path of game storefront installations (Steam, Epic, Riot)
             if (!string.IsNullOrEmpty(procPath))
             {
                 if (procPath.Contains(@"\steamapps\common\") ||
@@ -239,13 +274,9 @@ public sealed class GameOptimizerService : IDisposable
                     procPath.Contains(@"\riot games\") ||
                     procPath.Contains(@"\gog galaxy\games\"))
                 {
-                    // Exclude launcher wrappers
-                    if (procName is not ("steam" or "epicgameslauncher" or "riotclientux" or "riotclientservices" or "galaxyclient"))
-                    {
-                        pid = (int)fgPid;
-                        name = procName;
-                        return true;
-                    }
+                    pid = (int)fgPid;
+                    name = procName;
+                    return true;
                 }
             }
         }

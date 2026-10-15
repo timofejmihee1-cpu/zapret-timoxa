@@ -6,6 +6,7 @@ using System.Windows.Media;
 using System.Windows.Media.Animation;
 using Drawing = System.Drawing;
 using Forms = System.Windows.Forms;
+using Zapret2UI.Controls;
 using Zapret2UI.Localization;
 using Zapret2UI.Services.Engine;
 using Zapret2UI.Services.Platform;
@@ -50,6 +51,8 @@ public partial class MainWindow : Window
         _vm.AutoCheckStarted += OnAutoCheckStarted;
         _vm.AutoCheckFinished += OnAutoCheckFinished;
         Loaded += OnLoaded;
+        Activated += (_, _) => DotWaveBackground.IsPaused = false;
+        Deactivated += (_, _) => { if (_vm.IsGameModeActive) DotWaveBackground.IsPaused = true; };
         IsVisibleChanged += OnIsVisibleChanged; // repaint a window first drawn behind the logon screen
         Closing += OnClosing;
         StateChanged += OnWindowStateChanged;
