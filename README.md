@@ -6,6 +6,12 @@
 
 # zapret_timosha
 
+> [!IMPORTANT]
+> **Данный проект является форком оригинального проекта [Zapret2UI](https://github.com/Asterlike/zapret2UI) от [AsterLike (Сергей)](https://github.com/Asterlike).**  
+> • Оригинальный репозиторий: **[https://github.com/Asterlike/zapret2UI](https://github.com/Asterlike/zapret2UI)**  
+> • Автор оригинала: **[AsterLike](https://github.com/Asterlike)**  
+> Огромное спасибо Сергею за фундамент проекта и оригинальную реализацию Zapret2UI!
+
 **Программа, которая одной кнопкой возвращает доступ к Discord, YouTube и Telegram на Windows.**
 
 <p>

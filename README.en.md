@@ -1,10 +1,16 @@
-﻿<div align="center">
+<div align="center">
 
 **EN** | [RU](README.md "Читать по-русски")
 
 <img src="Assets/app-256.png" width="96" alt="Zapret2UI"/>
 
-# Zapret2UI
+# zapret_timosha
+
+> [!IMPORTANT]
+> **This project is a fork of the original [Zapret2UI](https://github.com/Asterlike/zapret2UI) by [AsterLike (Sergey)](https://github.com/Asterlike).**  
+> • Original repository: **[https://github.com/Asterlike/zapret2UI](https://github.com/Asterlike/zapret2UI)**  
+> • Original author: **[AsterLike](https://github.com/Asterlike)**  
+> Many thanks to Sergey (AsterLike) for creating the original Zapret2UI foundation!
 
 **A program that brings Discord, YouTube and Telegram back on Windows with one button.**
 
