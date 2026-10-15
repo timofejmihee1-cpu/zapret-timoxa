@@ -1,5 +1,6 @@
 using Zapret2UI.Localization;
 using Zapret2UI.Services.Network;
+using Zapret2UI.Services.Platform;
 using Zapret2UI.Views;
 
 namespace Zapret2UI.ViewModels;
@@ -153,6 +154,30 @@ public sealed partial class MainViewModel
             OnPropertyChanged();
         }
     }
+
+    /// <summary>Lite mode for weak / low-spec PCs: disables 3D particle wave background,
+    /// heavy effects and non-essential visual overhead while keeping 100% bypass features.</summary>
+    public bool LiteMode
+    {
+        get => Settings.LiteMode ?? IsLowSpecDetected;
+        set
+        {
+            if (value == (Settings.LiteMode ?? IsLowSpecDetected)) return;
+            Settings.LiteMode = value;
+            _settingsSvc.Save();
+            ApplyLiteMode(value);
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(IsLiteMode));
+        }
+    }
+
+    public bool IsLiteMode => LiteMode;
+
+    /// <summary>Whether low-spec / weak computer hardware was auto-detected.</summary>
+    public bool IsLowSpecDetected => HardwareSpecService.IsWeakHardware();
+
+    /// <summary>Summary of CPU cores, RAM and GPU graphics tier.</summary>
+    public string HardwareSummaryText => HardwareSpecService.GetHardwareSummary();
 
     /// <summary>Bypass every site (catch-all) vs allow-list (default off, like Flowseal). Off keeps
     /// games/apps not in any list untouched. Relaunches a running engine so it takes effect now.

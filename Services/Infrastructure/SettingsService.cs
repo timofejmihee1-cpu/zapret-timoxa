@@ -32,6 +32,11 @@ public sealed class AppSettings
     /// <summary>Auto-detect running games and drop RAM consumption to ~15-25 MB during gameplay.</summary>
     public bool GameOptimizerEnabled { get; set; } = true;
 
+    /// <summary>Lite mode for weak / low-spec PCs: disables 3D particle wave background,
+    /// heavy effects and non-essential visual overhead while keeping 100% bypass features.
+    /// When null, auto-detected on startup based on hardware specs (CPU cores, RAM, GPU rendering tier).</summary>
+    public bool? LiteMode { get; set; }
+
     /// <summary>Bypass EVERY site (catch-all) vs allow-list. When false (default), only the explicit
     /// lists (YouTube/Discord) + your custom targets/hostlists are desynced — like Flowseal,
     /// so games/apps not in any list never break. When true, all other TLS/QUIC is desynced too

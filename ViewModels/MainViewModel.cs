@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.Windows;
 using System.Windows.Data;
 using System.Windows.Threading;
+using Zapret2UI.Controls;
 using Zapret2UI.Localization;
 using Zapret2UI.Models;
 using Zapret2UI.Mvvm;
@@ -186,6 +187,25 @@ public sealed partial class MainViewModel : ObservableObject
             Task.Delay(600).ContinueWith(_ => OnUi(UpdateRamUsage));
         };
         _gameOptimizer.Start();
+
+        ApplyLiteMode(IsLiteMode);
+    }
+
+    public void ApplyLiteMode(bool enabled)
+    {
+        OnUi(() =>
+        {
+            if (enabled)
+            {
+                DotWaveBackground.IsPaused = true;
+                _ramTimer.Interval = TimeSpan.FromSeconds(5);
+            }
+            else
+            {
+                _ramTimer.Interval = TimeSpan.FromSeconds(1);
+                DotWaveBackground.IsPaused = false;
+            }
+        });
     }
 
     // ---- collections -------------------------------------------------------

@@ -144,7 +144,8 @@
             </Grid.RowDefinitions>
 
             <!-- ============ Animated 3D white dot wave background ============ -->
-            <ctl:DotWaveBackground Grid.RowSpan="2"/>
+            <ctl:DotWaveBackground Grid.RowSpan="2"
+                                    Visibility="{Binding IsLiteMode, Converter={StaticResource BoolToVis}, ConverterParameter=invert}"/>
 
             <!-- ============ Caption bar ============ -->
             <Grid Grid.Row="0" Background="Transparent">
@@ -1983,7 +1984,7 @@
                                              inherited value — the label would stay bright in every state. -->
                                         <TextBlock Text="{loc:Loc 'Система'}"
                                                    Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=TabItem}}"/>
-                                        <TextBlock Text="4" Margin="7,0,0,0" FontFamily="{StaticResource MonoFont}"
+                                        <TextBlock Text="5" Margin="7,0,0,0" FontFamily="{StaticResource MonoFont}"
                                                    FontSize="10.5" Opacity="0.5"
                                                    Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=TabItem}}"/>
                                     </StackPanel>
@@ -2050,6 +2051,25 @@
                                                                Text="{loc:Loc 'Ищет в системе то, что мешает обходу: другие программы обхода блокировок (они занимают тот же драйвер WinDivert), включённый VPN или туннельный адаптер, а также недокачанный движок. По каждой находке показывает, что это значит и что сделать. Та же проверка идёт автоматически при запуске — здесь её можно вызвать в любой момент.'}"/>
                                                     <Button Content="{loc:Loc 'Проверить окружение'}" Click="OnCheckEnvironment"
                                                             Style="{StaticResource GhostButton}" HorizontalAlignment="Left"/>
+                                                </StackPanel>
+                                            </Border>
+                                            <Border Style="{StaticResource Card}" Margin="0,14,0,0">
+                                                <StackPanel>
+                                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                                                        <TextBlock Text="{loc:Loc 'Производительность'}" Style="{StaticResource H2}" VerticalAlignment="Center"/>
+                                                        <Border Margin="10,0,0,0" Padding="8,2" CornerRadius="6"
+                                                                Background="{StaticResource AccentSoftBrush}"
+                                                                Visibility="{Binding IsLowSpecDetected, Converter={StaticResource BoolToVis}}">
+                                                            <TextBlock Text="{loc:Loc 'Слабый ПК обнаружен'}" FontSize="11" Foreground="{StaticResource AccentBrush}" FontWeight="SemiBold"/>
+                                                        </Border>
+                                                    </StackPanel>
+                                                    <TextBlock Style="{StaticResource Muted}" TextWrapping="Wrap" Margin="0,0,0,10"
+                                                               Text="{loc:Loc 'Облегчённый режим для слабых ПК и ноутбуков: отключает 3D-анимации фоновых волн и снижает нагрузку на процессор и видеокарту до нуля. 100% функций обхода блокировок остаются активными.'}"/>
+                                                    <CheckBox Content="{loc:Loc 'Облегчённый режим (для слабых ПК)'}"
+                                                              IsChecked="{Binding LiteMode, Mode=TwoWay}" Style="{StaticResource ToggleSwitch}"
+                                                              Margin="0,4"/>
+                                                    <TextBlock Style="{StaticResource Muted}" Margin="0,6,0,0" FontSize="11"
+                                                               Text="{Binding HardwareSummaryText, StringFormat='Конфигурация: {0}'}"/>
                                                 </StackPanel>
                                             </Border>
                                         </StackPanel>
