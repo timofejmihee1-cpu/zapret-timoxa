@@ -172,7 +172,7 @@ public partial class MainWindow : Window
             Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Loaded, () =>
             {
                 UpdateModeIndicator(animate: true);
-                UpdateTabIndicator(animate: false);
+                if (_vm.IsAdvancedMode) UpdateTabIndicator(animate: false);
             });
         }
     }
@@ -230,6 +230,10 @@ public partial class MainWindow : Window
 
     private void UpdateTabIndicator(bool animate)
     {
+        // In Simple mode the tab header bar is collapsed — do not measure or animate it.
+        if (!IsLoaded || !_vm.IsAdvancedMode || MainTabs == null)
+            return;
+
         if (MainTabs.Template?.FindName("PART_TabIndicator", MainTabs) is not Border indicator)
             return;
 
@@ -238,20 +242,14 @@ public partial class MainWindow : Window
 
         var tabItem = MainTabs.ItemContainerGenerator.ContainerFromIndex(idx) as TabItem ?? MainTabs.Items[idx] as TabItem;
         if (tabItem == null || !tabItem.IsLoaded || tabItem.ActualWidth <= 0)
-        {
-            Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Loaded, () => UpdateTabIndicator(animate));
             return;
-        }
 
         if (VisualTreeHelper.GetParent(indicator) is not FrameworkElement container)
             return;
 
         var border = tabItem.Template?.FindName("b", tabItem) as FrameworkElement ?? tabItem;
         if (border.ActualWidth <= 0)
-        {
-            Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Loaded, () => UpdateTabIndicator(animate));
             return;
-        }
 
         Point p = border.TranslatePoint(new Point(0, 0), container);
         double targetX = p.X;
@@ -300,7 +298,10 @@ public partial class MainWindow : Window
     private void OnModeCheckedChanged(object sender, RoutedEventArgs e)
     {
         UpdateModeIndicator(animate: true);
-        Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Loaded, () => UpdateTabIndicator(animate: false));
+        if (_vm.IsAdvancedMode)
+        {
+            Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Loaded, () => UpdateTabIndicator(animate: false));
+        }
     }
 
     private void OnModeButtonMouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
@@ -337,10 +338,7 @@ public partial class MainWindow : Window
         var sourceBrush = isSimple ? _advancedBrush : _simpleBrush;
 
         if (targetRb.ActualWidth <= 0)
-        {
-            Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Loaded, () => UpdateModeIndicator(animate));
             return;
-        }
 
         Point p = targetRb.TranslatePoint(new Point(0, 0), ModeSwitchGrid);
         double targetX = p.X;
