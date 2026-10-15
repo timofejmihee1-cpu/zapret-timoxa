@@ -1,4 +1,4 @@
-﻿using Zapret2UI.Localization;
+using Zapret2UI.Localization;
 using Zapret2UI.Models;
 using Zapret2UI.Services.Engine;
 using Zapret2UI.Services.Network;
@@ -534,6 +534,7 @@ public sealed partial class MainViewModel
         try { _masque.Dispose(); } catch { }
         try { _chain.Dispose(); } catch { }   // takes its Tor with it
         try { _engine.Dispose(); } catch { }
+        try { _gameOptimizer.Dispose(); } catch { }
     }
 
 }

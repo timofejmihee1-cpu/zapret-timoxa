@@ -15,7 +15,8 @@ namespace Zapret2UI.Services.Platform;
 /// </summary>
 public sealed class AutostartService
 {
-    private const string TaskName = "Zapret2UI Autostart";
+    private const string TaskName = "zapret_timosha Autostart";
+    private const string LegacyTaskName = "Zapret2UI Autostart";
 
     private static string? ExePath => Environment.ProcessPath;
 
@@ -39,6 +40,9 @@ public sealed class AutostartService
         try
         {
             AppPaths.EnsureCreated();
+            // Clean up old legacy task if present
+            try { RunSchtasks($"/Delete /TN \"{LegacyTaskName}\" /F"); } catch { }
+
             // UTF-16 with a BOM, as the declaration inside says — the form Task Scheduler exports itself.
             File.WriteAllText(xmlFile, BuildTaskXml(ExePath, WindowsIdentity.GetCurrent().Name), Encoding.Unicode);
             var (code, _) = RunSchtasks($"/Create /TN \"{TaskName}\" /XML \"{xmlFile}\" /F");
@@ -50,6 +54,7 @@ public sealed class AutostartService
 
     public bool Disable()
     {
+        try { RunSchtasks($"/Delete /TN \"{LegacyTaskName}\" /F"); } catch { }
         var (code, _) = RunSchtasks($"/Delete /TN \"{TaskName}\" /F");
         return code == 0;
     }
@@ -61,7 +66,10 @@ public sealed class AutostartService
     /// </summary>
     internal static string BuildTaskXml(string exePath, string user)
     {
-        string exe = SecurityElement.Escape(exePath);
+        // Strip any surrounding quotes — Task Scheduler <Command> must be a raw unquoted path
+        string cleanExe = exePath.Trim().Trim('\"');
+        string exe = SecurityElement.Escape(cleanExe);
+        string workDir = SecurityElement.Escape(Path.GetDirectoryName(cleanExe) ?? AppPaths.Root);
         string who = SecurityElement.Escape(user);
         return $"""
             <?xml version="1.0" encoding="UTF-16"?>
@@ -69,6 +77,7 @@ public sealed class AutostartService
               <Triggers>
                 <LogonTrigger>
                   <Enabled>true</Enabled>
+                  <Delay>PT15S</Delay>
                   <UserId>{who}</UserId>
                 </LogonTrigger>
               </Triggers>
@@ -90,6 +99,7 @@ public sealed class AutostartService
                 <Exec>
                   <Command>{exe}</Command>
                   <Arguments>--tray</Arguments>
+                  <WorkingDirectory>{workDir}</WorkingDirectory>
                 </Exec>
               </Actions>
             </Task>

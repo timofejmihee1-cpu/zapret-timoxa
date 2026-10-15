@@ -1,4 +1,4 @@
-﻿using Zapret2UI.Localization;
+using Zapret2UI.Localization;
 using Zapret2UI.Services.Network;
 using Zapret2UI.Views;
 
@@ -137,6 +137,20 @@ public sealed partial class MainViewModel
             OnPropertyChanged();
             OnPropertyChanged(nameof(CommandPreview));
             if (IsRunning) _ = ApplyEngineOptionsAsync(); // relaunch so the new capture width applies
+        }
+    }
+
+    /// <summary>Auto-detect running games and drop RAM consumption to ~15-25 MB during gameplay.</summary>
+    public bool GameOptimizerEnabled
+    {
+        get => Settings.GameOptimizerEnabled;
+        set
+        {
+            if (value == Settings.GameOptimizerEnabled) return;
+            Settings.GameOptimizerEnabled = value;
+            _settingsSvc.Save();
+            _gameOptimizer.IsEnabled = value;
+            OnPropertyChanged();
         }
     }
 

@@ -1,4 +1,4 @@
-﻿using System.IO;
+using System.IO;
 using System.Text.Json;
 
 namespace Zapret2UI.Services.Infrastructure;
@@ -28,6 +28,9 @@ public sealed class AppSettings
     /// ports (>1023) so throttled games get desynced too. When false (default), capture stays narrow
     /// (80,443 + Discord voice) so game traffic is left untouched and games run natively.</summary>
     public bool GameFilter { get; set; }
+
+    /// <summary>Auto-detect running games and drop RAM consumption to ~15-25 MB during gameplay.</summary>
+    public bool GameOptimizerEnabled { get; set; } = true;
 
     /// <summary>Bypass EVERY site (catch-all) vs allow-list. When false (default), only the explicit
     /// lists (YouTube/Discord) + your custom targets/hostlists are desynced — like Flowseal,

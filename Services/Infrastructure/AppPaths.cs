@@ -1,4 +1,4 @@
-﻿using System.IO;
+using System.IO;
 
 namespace Zapret2UI.Services.Infrastructure;
 
@@ -8,23 +8,95 @@ namespace Zapret2UI.Services.Infrastructure;
 /// </summary>
 public static class AppPaths
 {
-    public static string Root { get; } = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-        "Zapret2UI");
+    private static string? _root;
+    public static string Root => _root ??= DetermineRoot();
 
-    // One-time data-folder migration: the app was renamed ZapretUI → Zapret2UI. On first access (before
-    // any service reads settings/presets), move an existing legacy folder over so users keep their
-    // downloaded engine, settings and custom lists. Best-effort — a fresh folder if the move fails.
-    static AppPaths()
+    private static string DetermineRoot()
+    {
+        string baseDir = AppContext.BaseDirectory.TrimEnd('\\', '/');
+
+        string desktop = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory).TrimEnd('\\', '/');
+        string commonDesktop = Environment.GetFolderPath(Environment.SpecialFolder.CommonDesktopDirectory).TrimEnd('\\', '/');
+        string userProfile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile).TrimEnd('\\', '/');
+        string downloads = Path.Combine(userProfile, "Downloads").TrimEnd('\\', '/');
+
+        bool isDesktopOrUnsafe =
+            string.Equals(baseDir, desktop, StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(baseDir, commonDesktop, StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(baseDir, downloads, StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(baseDir, userProfile, StringComparison.OrdinalIgnoreCase) ||
+            Path.GetPathRoot(baseDir)?.TrimEnd('\\', '/') == baseDir;
+
+        // If on dev machine and not running from desktop:
+        if (!isDesktopOrUnsafe && Directory.Exists(@"D:\zapret_timosha\engine") && Directory.Exists(@"D:\zapret_timosha\lists"))
+        {
+            if (string.Equals(baseDir, @"D:\zapret_timosha", StringComparison.OrdinalIgnoreCase))
+                return @"D:\zapret_timosha";
+        }
+
+        // If running from an explicit dedicated folder (e.g. D:\tools\zapret) that is NOT desktop/downloads/root
+        // and already has engine or lists:
+        if (!isDesktopOrUnsafe && (Directory.Exists(Path.Combine(baseDir, "engine")) || Directory.Exists(Path.Combine(baseDir, "lists"))))
+        {
+            return baseDir;
+        }
+
+        // Standard location for single-exe: %LOCALAPPDATA%\zapret_timosha
+        string localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+        string safeRoot = Path.Combine(localAppData, "zapret_timosha");
+        Directory.CreateDirectory(safeRoot);
+
+        // Clean up accidental folders/files left on Desktop if the user ran from Desktop previously
+        if (string.Equals(baseDir, desktop, StringComparison.OrdinalIgnoreCase))
+        {
+            MigrateAndCleanDesktopFolders(desktop, safeRoot);
+        }
+
+        return safeRoot;
+    }
+
+    private static void MigrateAndCleanDesktopFolders(string desktop, string targetRoot)
     {
         try
         {
-            string legacy = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "ZapretUI");
-            if (Directory.Exists(legacy) && !Directory.Exists(Root))
-                Directory.Move(legacy, Root);
+            string[] folderNames = { "engine", "lists", "logs", "tmp", "masque", "tor" };
+            foreach (var folder in folderNames)
+            {
+                string src = Path.Combine(desktop, folder);
+                if (Directory.Exists(src))
+                {
+                    string dst = Path.Combine(targetRoot, folder);
+                    if (!Directory.Exists(dst))
+                    {
+                        Directory.Move(src, dst);
+                    }
+                    else
+                    {
+                        // Directory already exists in target; remove clutter from desktop
+                        try { Directory.Delete(src, true); } catch { }
+                    }
+                }
+            }
+
+            string[] fileNames = { "settings.json", "presets.json", "custom_targets.json" };
+            foreach (var file in fileNames)
+            {
+                string src = Path.Combine(desktop, file);
+                if (File.Exists(src))
+                {
+                    string dst = Path.Combine(targetRoot, file);
+                    if (!File.Exists(dst))
+                    {
+                        File.Move(src, dst);
+                    }
+                    else
+                    {
+                        try { File.Delete(src); } catch { }
+                    }
+                }
+            }
         }
-        catch { /* keep going with a fresh folder */ }
+        catch { /* best-effort cleanup */ }
     }
 
     // Engine (winws2.exe, WinDivert*, cygwin1.dll, lua\, files\)

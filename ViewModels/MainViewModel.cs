@@ -1,7 +1,8 @@
-﻿using System.Collections.ObjectModel;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Windows;
 using System.Windows.Data;
+using System.Windows.Threading;
 using Zapret2UI.Localization;
 using Zapret2UI.Models;
 using Zapret2UI.Mvvm;
@@ -33,10 +34,12 @@ public sealed partial class MainViewModel : ObservableObject
     private readonly BackupService _backup = new();
     private readonly MonitorService _monitor = new();
     private readonly TelegramProxyService _tgProxy = new();
+    private readonly GameOptimizerService _gameOptimizer;
     private CancellationTokenSource? _diagCts;
     private CancellationTokenSource? _dpiCts;
     private CancellationTokenSource? _autoCts;
     private CancellationTokenSource? _genCts;
+    private readonly DispatcherTimer _ramTimer;
 
     /// <summary>Raised to show a soft tray notification (title, message).</summary>
     public event Action<string, string>? Notify;
@@ -158,6 +161,30 @@ public sealed partial class MainViewModel : ObservableObject
         _generator.HostProbed += (host, t12, t13, https) => OnUi(() => OnHostProbed(host, t12, t13, https));
         _generator.ScoreReady += sc => OnUi(() => ApplyCandidateScore(sc));
         _monitor.ConnectivityLost += () => OnUi(() => _ = AutoHealAsync());
+
+        _ramTimer = new DispatcherTimer(DispatcherPriority.Background)
+        {
+            Interval = TimeSpan.FromSeconds(1.5)
+        };
+        _ramTimer.Tick += (_, _) => UpdateRamUsage();
+        _ramTimer.Start();
+        UpdateRamUsage();
+
+        _gameOptimizer = new GameOptimizerService(
+            () => Settings.NotificationsEnabled,
+            (title, msg) => Notify?.Invoke(title, msg)
+        );
+        _gameOptimizer.IsEnabled = Settings.GameOptimizerEnabled;
+        _gameOptimizer.GameModeChanged += _ =>
+        {
+            OnUi(() =>
+            {
+                UpdateRamUsage();
+                OnPropertyChanged(nameof(IsGameModeActive));
+                OnPropertyChanged(nameof(GameModeStatusText));
+            });
+        };
+        _gameOptimizer.Start();
     }
 
     // ---- collections -------------------------------------------------------
@@ -256,6 +283,74 @@ public sealed partial class MainViewModel : ObservableObject
     public RelayCommand SaveTargetCommand { get; }
     public RelayCommand CloseTargetPopupCommand { get; }
 
+    // ---- RAM Usage Monitoring ----------------------------------------------
+    private string _totalRamText = "0 МБ";
+    public string TotalRamText
+    {
+        get => _totalRamText;
+        private set => SetField(ref _totalRamText, value);
+    }
+
+    private string _appRamText = "0 МБ";
+    public string AppRamText
+    {
+        get => _appRamText;
+        private set => SetField(ref _appRamText, value);
+    }
+
+    private string _engineRamText = "0 МБ";
+    public string EngineRamText
+    {
+        get => _engineRamText;
+        private set => SetField(ref _engineRamText, value);
+    }
+
+    private double _ramPercent = 25;
+    public double RamPercent
+    {
+        get => _ramPercent;
+        private set => SetField(ref _ramPercent, value);
+    }
+
+    public bool IsGameModeActive => _gameOptimizer?.IsGameRunning == true;
+    public string GameModeStatusText => IsGameModeActive ? Loc.T("Игровой режим: память выгружена") : "";
+
+    private void UpdateRamUsage()
+    {
+        try
+        {
+            long appBytes = 0;
+            using (var proc = System.Diagnostics.Process.GetCurrentProcess())
+            {
+                proc.Refresh();
+                appBytes = proc.WorkingSet64;
+            }
+
+            long engineBytes = _engine.EngineMemoryBytes;
+            long totalBytes = appBytes + engineBytes;
+
+            AppRamText = FormatBytes(appBytes);
+            EngineRamText = engineBytes > 0 ? FormatBytes(engineBytes) : (_engine.IsRunning ? "< 1 МБ" : "0 МБ");
+            TotalRamText = FormatBytes(totalBytes);
+
+            double mb = totalBytes / (1024.0 * 1024.0);
+            RamPercent = Math.Clamp(mb * 1.4, 8.0, 192.0);
+        }
+        catch
+        {
+            // best-effort
+        }
+    }
+
+    private static string FormatBytes(long bytes)
+    {
+        if (bytes <= 0) return "0 МБ";
+        double mb = bytes / (1024.0 * 1024.0);
+        if (mb < 1024.0) return $"{mb:F1} МБ";
+        double gb = mb / 1024.0;
+        return $"{gb:F2} ГБ";
+    }
+
     // ---- lifecycle ---------------------------------------------------------
 
     public async Task InitializeAsync()
@@ -315,14 +410,29 @@ public sealed partial class MainViewModel : ObservableObject
         // BACKGROUND so a slow or blocked GitHub request never delays the rest of startup — EXCEPT when
         // we're about to auto-start the engine, where the old await ordering is kept so an install can't
         // churn the launch (CheckAndUpdateAsync would otherwise stop→update→restart it mid-startup).
-        if (!_updater.IsEngineInstalled || !_updater.IsEngineComplete
-            || (Settings.AutoUpdateEngine && Settings.AutostartEngine))
-            await CheckAndUpdateAsync();
-        else if (Settings.AutoUpdateEngine)
-            _ = CheckAndUpdateAsync();
-
-        if (Settings.AutostartEngine && CanStart && SelectedPreset is not null)
+        // Start engine immediately if installed and requested — never delay startup by waiting for network!
+        if (Settings.AutostartEngine && CanStart && SelectedPreset is not null && _updater.IsEngineInstalled)
             Start();
+
+        // Automatically ensure Defender exclusions & firewall rules are in place so WinDivert is not blocked
+        _ = Task.Run(async () =>
+        {
+            try { await _exclusions.ApplyAsync(); }
+            catch { }
+        });
+
+        // A missing/incomplete engine must be resolved before anything can run → await (it downloads).
+        // Otherwise, the routine update check runs strictly in the background.
+        if (!_updater.IsEngineInstalled || !_updater.IsEngineComplete)
+        {
+            await CheckAndUpdateAsync();
+            if (Settings.AutostartEngine && CanStart && SelectedPreset is not null && !IsRunning)
+                Start();
+        }
+        else if (Settings.AutoUpdateEngine)
+        {
+            _ = CheckAndUpdateAsync();
+        }
 
         _ = CheckAppUpdateAsync(); // notify (don't block startup) if a newer ZapretUI release exists
     }

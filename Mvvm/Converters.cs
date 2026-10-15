@@ -44,11 +44,15 @@ public sealed class BoolToVisibilityConverter : IValueConverter
 /// <summary>EngineState -> status dot colour.</summary>
 public sealed class StateToBrushConverter : IValueConverter
 {
+    private static readonly SolidColorBrush RunningBrush = new(Color.FromRgb(0xFF, 0xFF, 0xFF));
+    private static readonly SolidColorBrush StartingBrush = new(Color.FromRgb(0xA1, 0xA1, 0xAA));
+    private static readonly SolidColorBrush StoppedBrush = new(Color.FromRgb(0x52, 0x52, 0x5B));
+
     public object Convert(object? v, Type t, object? p, CultureInfo c) => v switch
     {
-        EngineState.Running => new SolidColorBrush(Color.FromRgb(0x34, 0xD3, 0x99)),
-        EngineState.Starting or EngineState.Stopping => new SolidColorBrush(Color.FromRgb(0xF5, 0xA6, 0x23)),
-        _ => new SolidColorBrush(Color.FromRgb(0x6B, 0x72, 0x80)),
+        EngineState.Running => RunningBrush,
+        EngineState.Starting or EngineState.Stopping => StartingBrush,
+        _ => StoppedBrush,
     };
     public object ConvertBack(object? v, Type t, object? p, CultureInfo c) => Binding.DoNothing;
 }
@@ -85,10 +89,10 @@ public sealed class DiagStatusToTextConverter : IValueConverter
 /// <summary>DiagStatus -> cell foreground colour.</summary>
 public sealed class DiagStatusToBrushConverter : IValueConverter
 {
-    private static readonly SolidColorBrush Ok = new(Color.FromRgb(0x34, 0xD3, 0x99));
-    private static readonly SolidColorBrush Bad = new(Color.FromRgb(0xEF, 0x44, 0x44));
-    private static readonly SolidColorBrush Warn = new(Color.FromRgb(0xF5, 0xA6, 0x23));
-    private static readonly SolidColorBrush Muted = new(Color.FromRgb(0x6B, 0x72, 0x80));
+    private static readonly SolidColorBrush Ok = new(Color.FromRgb(0xFF, 0xFF, 0xFF));
+    private static readonly SolidColorBrush Bad = new(Color.FromRgb(0xD4, 0xD4, 0xD8));
+    private static readonly SolidColorBrush Warn = new(Color.FromRgb(0xA1, 0xA1, 0xAA));
+    private static readonly SolidColorBrush Muted = new(Color.FromRgb(0x71, 0x71, 0x7A));
 
     public object Convert(object? v, Type t, object? p, CultureInfo c) => v switch
     {

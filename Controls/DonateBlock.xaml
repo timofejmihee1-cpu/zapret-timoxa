@@ -3,147 +3,80 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:loc="clr-namespace:Zapret2UI.Localization"
              xmlns:emoji="clr-namespace:Emoji.Wpf;assembly=Emoji.Wpf">
-    <UserControl.Resources>
-        <!-- Borderless chevron button for the COLLAPSED pill (expand). Transparent until hover — looks
-             great inline next to the pill text. -->
-        <Style x:Key="DonateGlyph" TargetType="Button">
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="Foreground" Value="{StaticResource FgMutedBrush}"/>
-            <Setter Property="Width" Value="26"/>
-            <Setter Property="Height" Value="26"/>
-            <Setter Property="SnapsToDevicePixels" Value="True"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border x:Name="bg" Background="{TemplateBinding Background}" CornerRadius="13">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="bg" Property="Background" Value="#22FFFFFF"/>
-                                <Setter Property="Foreground" Value="White"/>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
+    <!-- Non-collapsible RAM Usage widget for zapret_timosha and winws2 engine -->
+    <Border Background="{StaticResource SurfaceBrush}"
+            BorderBrush="{StaticResource BorderBrush2}"
+            BorderThickness="1"
+            CornerRadius="16"
+            Padding="14,12"
+            Width="220"
+            SnapsToDevicePixels="True">
+        <StackPanel>
+            <!-- Header: live status dot + label + total RAM -->
+            <Grid Margin="0,0,0,8">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <Border Width="7" Height="7" CornerRadius="3.5" Background="{StaticResource AccentBrush}"
+                            Margin="0,0,7,0" VerticalAlignment="Center"/>
+                    <TextBlock Text="ПАМЯТЬ / RAM"
+                               FontSize="11"
+                               FontWeight="Bold"
+                               Foreground="{StaticResource FgMutedBrush}"
+                               FontFamily="{StaticResource DisplayFont}"/>
+                </StackPanel>
+                <TextBlock Grid.Column="1"
+                           Text="{Binding TotalRamText, FallbackValue='0 МБ'}"
+                           FontSize="12"
+                           FontWeight="Bold"
+                           Foreground="{StaticResource FgBrush}"
+                           FontFamily="{StaticResource MonoFont}"/>
+            </Grid>
 
-        <!-- Collapse button for the EXPANDED card. A solid, always-visible round chip (background + border
-             + brighter glyph) so it clearly reads as a pressable control in the card corner, with distinct
-             hover and pressed states. -->
-        <Style x:Key="DonateCollapseBtn" TargetType="Button">
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="Foreground" Value="#C6CEDA"/>
-            <Setter Property="Width" Value="26"/>
-            <Setter Property="Height" Value="26"/>
-            <Setter Property="SnapsToDevicePixels" Value="True"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border x:Name="bg" CornerRadius="13" Background="#1EFFFFFF"
-                                BorderBrush="#2CFFFFFF" BorderThickness="1">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="bg" Property="Background" Value="#34FFFFFF"/>
-                                <Setter TargetName="bg" Property="BorderBrush" Value="#4CFFFFFF"/>
-                                <Setter Property="Foreground" Value="White"/>
-                            </Trigger>
-                            <Trigger Property="IsPressed" Value="True">
-                                <Setter TargetName="bg" Property="Background" Value="#48FFFFFF"/>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-    </UserControl.Resources>
+            <!-- Visual indicator bar -->
+            <Border Background="{StaticResource SurfaceAltBrush}" Height="5" CornerRadius="2.5" Margin="0,0,0,10">
+                <Border HorizontalAlignment="Left"
+                        Background="{StaticResource AccentBrush}"
+                        Height="5"
+                        CornerRadius="2.5"
+                        Width="{Binding RamPercent, FallbackValue=25}"/>
+            </Border>
 
-    <Grid HorizontalAlignment="Left">
-        <!-- COLLAPSED: compact "support" pill + a chevron-down that brings the QR back -->
-        <Border Background="{StaticResource SurfaceBrush}" CornerRadius="14" Padding="4"
-                Visibility="{Binding DonateExpanded, Converter={StaticResource BoolToVis}, ConverterParameter=invert}">
-            <StackPanel Orientation="Horizontal">
-                <Border Background="Transparent" Cursor="Hand" MouseLeftButtonUp="OnOpen"
-                        Padding="10,6" ToolTip="{loc:Loc 'Открыть страницу поддержки'}">
-                    <emoji:TextBlock Text="{loc:Loc '💚 Поддержать автора'}" FontSize="12.5" FontWeight="SemiBold"
-                                     Foreground="{StaticResource AccentBrush}" VerticalAlignment="Center"/>
-                </Border>
-                <Button Style="{StaticResource DonateGlyph}" Command="{Binding ToggleDonateCommand}"
-                        VerticalAlignment="Center" ToolTip="{loc:Loc 'Показать QR-код'}">
-                    <Path Data="M1,1 L5,5 L9,1" Width="10" Height="6" Stretch="None"
-                          Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}, FallbackValue=#8B95A5}"
-                          StrokeThickness="1.7" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
-                </Button>
-            </StackPanel>
-        </Border>
-
-        <!-- EXPANDED: full donate card with QR (click anywhere opens the support page) -->
-        <Border CornerRadius="16" Padding="14" Cursor="Hand"
-                MouseLeftButtonUp="OnOpen" ToolTip="{loc:Loc 'Открыть страницу поддержки'}"
-                Visibility="{Binding DonateExpanded, Converter={StaticResource BoolToVis}}">
-            <Border.Style>
-                <!-- The whole card is one big link, so it still needs a hover state — and with the
-                     outline gone that state has to be the fill. -->
-                <Style TargetType="Border">
-                    <Setter Property="Background" Value="{StaticResource SurfaceBrush}"/>
-                    <Style.Triggers>
-                        <Trigger Property="IsMouseOver" Value="True">
-                            <Setter Property="Background" Value="{StaticResource SurfaceAltBrush}"/>
-                        </Trigger>
-                    </Style.Triggers>
-                </Style>
-            </Border.Style>
+            <!-- Memory breakdown: zapret_timosha (app) and winws2 (engine) -->
+            <Grid Margin="0,0,0,5">
+                <TextBlock Text="zapret_timosha"
+                           FontSize="11.5"
+                           Foreground="{StaticResource FgMutedBrush}"
+                           VerticalAlignment="Center"/>
+                <TextBlock Text="{Binding AppRamText, FallbackValue='0 МБ'}"
+                           HorizontalAlignment="Right"
+                           FontSize="11.5"
+                           FontFamily="{StaticResource MonoFont}"
+                           Foreground="{StaticResource FgBrush}"
+                           VerticalAlignment="Center"/>
+            </Grid>
 
             <Grid>
-                <StackPanel HorizontalAlignment="Center" Margin="0,2,0,0">
-                    <TextBlock Text="{loc:Loc 'ПОДДЕРЖАТЬ АВТОРА'}" Style="{StaticResource Muted}" FontSize="10.5"
-                               FontWeight="SemiBold" HorizontalAlignment="Center" Margin="0,0,0,10"/>
-
-                    <!-- White tile keeps the QR scannable on the dark theme -->
-                    <Border Background="White" CornerRadius="12" Padding="6" HorizontalAlignment="Center">
-                        <Image Source="/Assets/donate-qr.png" Width="98" Height="98"
-                               RenderOptions.BitmapScalingMode="HighQuality"/>
-                    </Border>
-
-                    <!-- Heart is a sibling emoji:TextBlock (Emoji.Wpf only colorizes its own Text,
-                         not runs inside a Hyperlink); the whole card stays clickable via OnOpen. -->
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,10,0,0">
-                        <TextBlock FontSize="12.5" FontWeight="SemiBold" VerticalAlignment="Center">
-                            <Hyperlink x:Name="Link" NavigateUri="https://web.tribute.tg/d/HFh"
-                                       RequestNavigate="OnNavigate" TextDecorations="{x:Null}"
-                                       Foreground="{StaticResource AccentBrush}"
-                                       ToolTip="https://web.tribute.tg/d/HFh">
-                                <Hyperlink.Style>
-                                    <Style TargetType="Hyperlink">
-                                        <Style.Triggers>
-                                            <Trigger Property="IsMouseOver" Value="True">
-                                                <Setter Property="TextDecorations" Value="Underline"/>
-                                            </Trigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </Hyperlink.Style>
-                                <Run Text="{loc:Loc 'Поддержать автора'}"/>
-                            </Hyperlink>
-                        </TextBlock>
-                        <emoji:TextBlock Text="&#160;💚" FontSize="12.5" FontWeight="SemiBold"
-                                         VerticalAlignment="Center"/>
-                    </StackPanel>
-                </StackPanel>
-
-                <!-- Collapse button: floats in the card's top-right corner, clear of the header text -->
-                <Button Style="{StaticResource DonateCollapseBtn}" Command="{Binding ToggleDonateCommand}"
-                        HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,-6,-8,0"
-                        ToolTip="{loc:Loc 'Свернуть — скрыть QR-код'}">
-                    <Path Data="M1,5 L5,1 L9,5" Width="10" Height="6" Stretch="None"
-                          Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}, FallbackValue=#C6CEDA}"
-                          StrokeThickness="1.7" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
-                </Button>
+                <TextBlock Text="winws2 (движок)"
+                           FontSize="11.5"
+                           Foreground="{StaticResource FgMutedBrush}"
+                           VerticalAlignment="Center"/>
+                <TextBlock Text="{Binding EngineRamText, FallbackValue='0 МБ'}"
+                           HorizontalAlignment="Right"
+                           FontSize="11.5"
+                           FontFamily="{StaticResource MonoFont}"
+                           Foreground="{StaticResource FgBrush}"
+                           VerticalAlignment="Center"/>
             </Grid>
-        </Border>
-    </Grid>
+
+            <!-- Game mode badge -->
+            <Border Visibility="{Binding IsGameModeActive, Converter={StaticResource BoolToVis}}"
+                    Background="#22FFFFFF" CornerRadius="8" Padding="6,4" Margin="0,9,0,0">
+                <TextBlock Text="⚡ Оптимизация для игр" FontSize="11" Foreground="{StaticResource AccentBrush}"
+                           HorizontalAlignment="Center" FontWeight="SemiBold"/>
+            </Border>
+        </StackPanel>
+    </Border>
 </UserControl>

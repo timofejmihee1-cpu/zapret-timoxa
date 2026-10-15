@@ -16,3 +16,16 @@ out/
 Thumbs.db
 desktop.ini
 
+# Executables & Local Tools
+*.exe
+publish/
+.dotnet/
+dotnet-install.ps1
+
+# Runtime & Local Data
+engine/
+lists/
+logs/
+tmp/
+settings.json
+presets.json

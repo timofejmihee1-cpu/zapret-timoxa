@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.IO;
 using Zapret2UI.Localization;
 using Zapret2UI.Services.Infrastructure;
 
@@ -31,15 +32,20 @@ public sealed class ExclusionService
         string engineDir = AppPaths.EngineDir;
         string winws = AppPaths.WinwsExe;
 
-        // 1) Windows Defender — exclude the data + engine folders and the two executables.
+        // 1) Windows Defender — exclude the data + engine folders and the executables.
         ok &= await DefenderExcludePathAsync(root, log);
         ok &= await DefenderExcludePathAsync(engineDir, log);
         ok &= await DefenderExcludeProcessAsync(winws, log);
-        if (appExe is not null) ok &= await DefenderExcludeProcessAsync(appExe, log);
+        if (appExe is not null)
+        {
+            ok &= await DefenderExcludeProcessAsync(appExe, log);
+            ok &= await DefenderExcludePathAsync(appExe, log);
+            Unblock(appExe);
+        }
 
         // 2) Windows Firewall — allow the app and the engine through (inbound + outbound, all profiles).
-        ok &= await FirewallAllowAsync("Zapret2UI (движок)", winws, log);
-        if (appExe is not null) ok &= await FirewallAllowAsync("Zapret2UI", appExe, log);
+        ok &= await FirewallAllowAsync("zapret_timosha (движок)", winws, log);
+        if (appExe is not null) ok &= await FirewallAllowAsync("zapret_timosha", appExe, log);
 
         return new Result(ok, string.Join('\n', log));
     }
@@ -156,4 +162,21 @@ public sealed class ExclusionService
             return (-1, ex.Message);
         }
     }
+
+    /// <summary>Strip Mark-of-the-Web (Zone.Identifier) stream to prevent SmartScreen / Defender internet blocks.</summary>
+    public static void Unblock(string path)
+    {
+        try
+        {
+            if (File.Exists(path) || Directory.Exists(path))
+            {
+                DeleteFile(path + ":Zone.Identifier");
+            }
+        }
+        catch { }
+    }
+
+    [System.Runtime.InteropServices.DllImport("kernel32.dll", CharSet = System.Runtime.InteropServices.CharSet.Unicode, SetLastError = true)]
+    [return: System.Runtime.InteropServices.MarshalAs(System.Runtime.InteropServices.UnmanagedType.Bool)]
+    private static extern bool DeleteFile(string lpFileName);
 }

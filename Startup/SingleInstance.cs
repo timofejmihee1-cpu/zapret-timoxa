@@ -18,8 +18,8 @@ internal sealed class SingleInstance : IDisposable
     // would open. Global\ is shared across sessions, closing that gap. The app is always elevated
     // (requireAdministrator), so it always has the privilege to create Global\ objects, and both
     // copies sit at the same integrity level and can always open each other's objects.
-    private const string MutexName = @"Global\Zapret2UI.SingleInstance";
-    private const string SurfaceEventName = @"Global\Zapret2UI.SurfaceWindow";
+    private const string MutexName = @"Global\zapret_timosha.SingleInstance";
+    private const string SurfaceEventName = @"Global\zapret_timosha.SurfaceWindow";
 
     private Mutex? _mutex;
     private EventWaitHandle? _surfaceSignal;

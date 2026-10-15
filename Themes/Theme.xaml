@@ -1,4 +1,4 @@
-﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:mvvm="clr-namespace:Zapret2UI.Mvvm"
                     xmlns:emoji="clr-namespace:Emoji.Wpf;assembly=Emoji.Wpf">
@@ -18,16 +18,16 @@
          the ground to #12151C narrows the gap between it and a card enough that the FILL alone
          separates them — which is why the borders could then come off. Picked on a live mock of the
          real screen, not from a swatch. -->
-    <Color x:Key="C.Bg">#FF12151C</Color>
-    <Color x:Key="C.Surface">#FF191D25</Color>
-    <Color x:Key="C.SurfaceAlt">#FF252B36</Color>
-    <Color x:Key="C.Border">#1AFFFFFF</Color>
-    <Color x:Key="C.Fg">#FFEFF2F7</Color>
-    <Color x:Key="C.FgMuted">#FF9BA6B6</Color>
-    <Color x:Key="C.Muted2">#FF68717F</Color>
-    <Color x:Key="C.Accent">#FFA78BFA</Color>
-    <Color x:Key="C.AccentHover">#FF6D4BD8</Color>
-    <Color x:Key="C.AccentSoft">#24A78BFA</Color>
+    <Color x:Key="C.Bg">#FF09090B</Color>
+    <Color x:Key="C.Surface">#FF131316</Color>
+    <Color x:Key="C.SurfaceAlt">#FF1C1C21</Color>
+    <Color x:Key="C.Border">#22FFFFFF</Color>
+    <Color x:Key="C.Fg">#FFF4F4F5</Color>
+    <Color x:Key="C.FgMuted">#FFA1A1AA</Color>
+    <Color x:Key="C.Muted2">#FF71717A</Color>
+    <Color x:Key="C.Accent">#FFFFFFFF</Color>
+    <Color x:Key="C.AccentHover">#FFE4E4E7</Color>
+    <Color x:Key="C.AccentSoft">#18FFFFFF</Color>
 
     <SolidColorBrush x:Key="BgBrush"        Color="{StaticResource C.Bg}"/>
     <SolidColorBrush x:Key="SurfaceBrush"   Color="{StaticResource C.Surface}"/>
@@ -39,22 +39,22 @@
     <SolidColorBrush x:Key="AccentBrush"    Color="{StaticResource C.Accent}"/>
     <SolidColorBrush x:Key="AccentHoverBrush" Color="{StaticResource C.AccentHover}"/>
     <SolidColorBrush x:Key="AccentSoftBrush" Color="{StaticResource C.AccentSoft}"/>
-    <SolidColorBrush x:Key="SuccessBrush"   Color="#FF34D399"/>
-    <SolidColorBrush x:Key="DangerBrush"    Color="#FFE2566A"/>
-    <SolidColorBrush x:Key="WarnBrush"      Color="#FFF5A623"/>
+    <SolidColorBrush x:Key="SuccessBrush"   Color="#FFFFFFFF"/>
+    <SolidColorBrush x:Key="DangerBrush"    Color="#FF27272A"/>
+    <SolidColorBrush x:Key="WarnBrush"      Color="#FFA1A1AA"/>
 
     <!-- Cards are lit from above rather than painted flat, and they carry NO outline: on the softened
          ground the fill alone is enough to separate them, and a border on top of that only added a
          second edge to look at. The two stops are what keeps a borderless card from reading as a flat
          patch — it still has a top and a bottom. -->
     <LinearGradientBrush x:Key="CardFill" StartPoint="0,0" EndPoint="0,1">
-        <GradientStop Color="#FF1D222C" Offset="0"/>
-        <GradientStop Color="#FF191E27" Offset="1"/>
+        <GradientStop Color="#FF141417" Offset="0"/>
+        <GradientStop Color="#FF0F0F12" Offset="1"/>
     </LinearGradientBrush>
 
     <!-- The halo under a primary action. One resource rather than an inline effect per button, so
          «главные кнопки светятся» cannot drift into «одна главная кнопка светится». -->
-    <DropShadowEffect x:Key="AccentGlow" Color="#A78BFA" BlurRadius="34" ShadowDepth="0" Opacity="0.30"/>
+    <DropShadowEffect x:Key="AccentGlow" Color="#FFFFFF" BlurRadius="28" ShadowDepth="0" Opacity="0.22"/>
 
     <!-- Laid over a button's own colour, so one overlay works for every variant (accent, danger,
          success) without knowing the hue. Darkening the bottom rather than glossing the top: a white
@@ -70,9 +70,13 @@
     <FontFamily x:Key="DisplayFont">/Assets/Fonts/#Space Grotesk</FontFamily>
     <FontFamily x:Key="MonoFont">/Assets/Fonts/#JetBrains Mono</FontFamily>
 
+    <!-- Window default typography: sets FgBrush as inheritable foreground app-wide -->
+    <Style TargetType="Window">
+        <Setter Property="Foreground" Value="{StaticResource FgBrush}"/>
+    </Style>
+
     <!-- ====================== Base typography ====================== -->
     <Style TargetType="TextBlock">
-        <Setter Property="Foreground" Value="{StaticResource FgBrush}"/>
         <Setter Property="FontFamily" Value="{StaticResource UiFont}"/>
         <Setter Property="FontSize" Value="13"/>
         <Setter Property="TextOptions.TextFormattingMode" Value="Ideal"/>
@@ -244,7 +248,17 @@
 
     <!-- ====================== Buttons ====================== -->
     <Style x:Key="PrimaryButton" TargetType="Button">
-        <Setter Property="Foreground" Value="White"/>
+        <Style.Resources>
+            <Style TargetType="TextBlock">
+                <Setter Property="Foreground" Value="#0A0A0C"/>
+                <Setter Property="FontWeight" Value="SemiBold"/>
+            </Style>
+            <Style TargetType="{x:Type emoji:TextBlock}">
+                <Setter Property="Foreground" Value="#0A0A0C"/>
+                <Setter Property="FontWeight" Value="SemiBold"/>
+            </Style>
+        </Style.Resources>
+        <Setter Property="Foreground" Value="#0A0A0C"/>
         <Setter Property="Background" Value="{StaticResource AccentBrush}"/>
         <Setter Property="FontFamily" Value="{StaticResource UiFont}"/>
         <Setter Property="FontSize" Value="13.5"/>
@@ -258,16 +272,29 @@
             <Setter.Value>
                 <ControlTemplate TargetType="Button">
                     <!-- See StartStopButton: the overlay has to be a sibling of the fill, not its child. -->
+                    <ControlTemplate.Resources>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="Foreground" Value="#0A0A0C"/>
+                            <Setter Property="FontWeight" Value="SemiBold"/>
+                        </Style>
+                        <Style TargetType="{x:Type emoji:TextBlock}">
+                            <Setter Property="Foreground" Value="#0A0A0C"/>
+                            <Setter Property="FontWeight" Value="SemiBold"/>
+                        </Style>
+                    </ControlTemplate.Resources>
                     <Grid x:Name="root" RenderTransformOrigin="0.5,0.5">
                         <Grid.RenderTransform><ScaleTransform x:Name="bs" ScaleX="1" ScaleY="1"/></Grid.RenderTransform>
                         <Border x:Name="b" Background="{TemplateBinding Background}" CornerRadius="14"/>
                         <Border Background="{StaticResource ButtonDepth}" CornerRadius="14" IsHitTestVisible="False"/>
                         <ContentPresenter Margin="{TemplateBinding Padding}"
+                                          TextElement.Foreground="#0A0A0C"
+                                          TextElement.FontWeight="SemiBold"
                                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
                             <Setter TargetName="b" Property="Background" Value="{StaticResource AccentHoverBrush}"/>
+                            <Setter Property="Foreground" Value="#0A0A0C"/>
                             <Trigger.EnterActions>
                                 <BeginStoryboard>
                                     <Storyboard>
@@ -309,12 +336,21 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Button">
+                    <ControlTemplate.Resources>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="Foreground" Value="{StaticResource FgBrush}"/>
+                        </Style>
+                        <Style TargetType="{x:Type emoji:TextBlock}">
+                            <Setter Property="Foreground" Value="{StaticResource FgBrush}"/>
+                        </Style>
+                    </ControlTemplate.Resources>
                     <!-- No outline: the fill carries it now. Hover therefore has to be a change of
                          FILL — with the border gone, recolouring a border nobody can see is a hover
                          state that does not exist. -->
                     <Border x:Name="b" Background="{TemplateBinding Background}"
                             CornerRadius="14" Padding="{TemplateBinding Padding}">
-                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        <ContentPresenter TextElement.Foreground="{StaticResource FgBrush}"
+                                          HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
@@ -329,6 +365,9 @@
             </Setter.Value>
         </Setter>
     </Style>
+
+    <!-- Default Button style: ensures any button without an explicit style uses GhostButton styling (dark fill + white text) -->
+    <Style TargetType="Button" BasedOn="{StaticResource GhostButton}"/>
 
     <!-- Destructive (delete) button — red, darker on hover -->
     <Style x:Key="DangerButton" TargetType="Button">
@@ -348,7 +387,7 @@
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="b" Property="Background" Value="#FFD83A3A"/>
+                            <Setter TargetName="b" Property="Background" Value="#FF3F3F46"/>
                         </Trigger>
                         <Trigger Property="IsEnabled" Value="False">
                             <Setter TargetName="b" Property="Opacity" Value="0.4"/>
@@ -431,12 +470,11 @@
          space (Discord eyes / YouTube triangle / Telegram plane) shows through. Render with a Path:
          <Path Data="{StaticResource Icon.Discord}" Fill="{StaticResource Brand.Discord}"
                Width="16" Height="16" Stretch="Uniform"/> -->
-    <SolidColorBrush x:Key="Brand.Discord"  Color="#5865F2"/>
-    <SolidColorBrush x:Key="Brand.YouTube"  Color="#FF0033"/>
-    <SolidColorBrush x:Key="Brand.Telegram" Color="#2CA5E0"/>
-    <!-- Cloudflare's signature orange, on their own mark (simple-icons, CC0 — the same set the three
-         icons above come from, so it renders at the same weight and on the same 24x24 canvas). -->
-    <SolidColorBrush x:Key="Brand.Cloudflare" Color="#F38020"/>
+    <SolidColorBrush x:Key="Brand.Discord"  Color="#E4E4E7"/>
+    <SolidColorBrush x:Key="Brand.YouTube"  Color="#E4E4E7"/>
+    <SolidColorBrush x:Key="Brand.Telegram" Color="#E4E4E7"/>
+    <!-- Cloudflare's signature mark rendered in monochrome silver -->
+    <SolidColorBrush x:Key="Brand.Cloudflare" Color="#E4E4E7"/>
     <Geometry x:Key="Icon.Discord">M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.946 2.4189-2.1568 2.4189Z</Geometry>
     <Geometry x:Key="Icon.YouTube">M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z</Geometry>
     <Geometry x:Key="Icon.Cloudflare">M16.5088 16.8447c.1475-.5068.0908-.9707-.1553-1.3154-.2246-.3164-.6045-.499-1.0615-.5205l-8.6592-.1123a.1559.1559 0 0 1-.1333-.0713c-.0283-.042-.0351-.0986-.021-.1553.0278-.084.1123-.1484.2036-.1562l8.7359-.1123c1.0351-.0489 2.1601-.8868 2.5537-1.9136l.499-1.3013c.0215-.0561.0293-.1128.0147-.168-.5625-2.5463-2.835-4.4453-5.5499-4.4453-2.5039 0-4.6284 1.6177-5.3876 3.8614-.4927-.3658-1.1187-.5625-1.794-.499-1.2026.119-2.1665 1.083-2.2861 2.2856-.0283.31-.0069.6128.0635.894C1.5683 13.171 0 14.7754 0 16.752c0 .1748.0142.3515.0352.5273.0141.083.0844.1475.1689.1475h15.9814c.0909 0 .1758-.0645.2032-.1553l.12-.4268zm2.7568-5.5634c-.0771 0-.1611 0-.2383.0112-.0566 0-.1054.0415-.127.0976l-.3378 1.1744c-.1475.5068-.0918.9707.1543 1.3164.2256.3164.6055.498 1.0625.5195l1.8437.1133c.0557 0 .1055.0263.1329.0703.0283.043.0351.1074.0214.1562-.0283.084-.1132.1485-.204.1553l-1.921.1123c-1.041.0488-2.1582.8867-2.5527 1.914l-.1406.3585c-.0283.0713.0215.1416.0986.1416h6.5977c.0771 0 .1474-.0489.169-.126.1122-.4082.1757-.837.1757-1.2803 0-2.6025-2.125-4.727-4.7344-4.727</Geometry>
@@ -458,7 +496,26 @@
                         <Border Grid.Row="0" BorderBrush="{StaticResource BorderBrush2}"
                                 BorderThickness="0,0,0,1" Padding="20,11"
                                 Visibility="{Binding IsAdvancedMode, Converter={StaticResource BoolToVis}}">
-                            <TabPanel IsItemsHost="True" HorizontalAlignment="Left" Panel.ZIndex="1"/>
+                            <Grid HorizontalAlignment="Left">
+                                <!-- The sliding indicator pill that glides between tabs -->
+                                <Border x:Name="PART_TabIndicator"
+                                        HorizontalAlignment="Left" VerticalAlignment="Top"
+                                        CornerRadius="14"
+                                        Background="{StaticResource AccentSoftBrush}"
+                                        BorderBrush="{StaticResource AccentBrush}"
+                                        BorderThickness="1"
+                                        IsHitTestVisible="False"
+                                        Opacity="0">
+                                    <Border.Effect>
+                                        <DropShadowEffect Color="#FFFFFF" BlurRadius="18" ShadowDepth="0" Opacity="0.22"/>
+                                    </Border.Effect>
+                                    <Border.RenderTransform>
+                                        <TranslateTransform x:Name="PART_TabIndicatorTransform" X="0" Y="0"/>
+                                    </Border.RenderTransform>
+                                </Border>
+                                <TabPanel x:Name="PART_TabPanel" IsItemsHost="True"
+                                          HorizontalAlignment="Left" Panel.ZIndex="1"/>
+                            </Grid>
                         </Border>
                         <!-- Named so code-behind can fade/slide it on tab switch (it assigns a
                              fresh, unfrozen RenderTransform there — a template one would be sealed). -->
@@ -489,8 +546,6 @@
                             <Setter Property="Foreground" Value="{StaticResource FgBrush}"/>
                         </Trigger>
                         <Trigger Property="IsSelected" Value="True">
-                            <Setter TargetName="b" Property="Background" Value="{StaticResource AccentSoftBrush}"/>
-                            <Setter TargetName="b" Property="BorderBrush" Value="{StaticResource AccentBrush}"/>
                             <Setter Property="Foreground" Value="{StaticResource AccentBrush}"/>
                         </Trigger>
                     </ControlTemplate.Triggers>
@@ -577,6 +632,14 @@
 
     <!-- Target/scope chip (pill) used on Home + Diagnostics -->
     <Style x:Key="ChipButton" TargetType="RadioButton">
+        <Style.Resources>
+            <Style TargetType="TextBlock">
+                <Setter Property="Foreground" Value="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}"/>
+            </Style>
+            <Style TargetType="{x:Type emoji:TextBlock}">
+                <Setter Property="Foreground" Value="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}"/>
+            </Style>
+        </Style.Resources>
         <Setter Property="Foreground" Value="{StaticResource FgMutedBrush}"/>
         <Setter Property="FontFamily" Value="{StaticResource UiFont}"/>
         <Setter Property="FontSize" Value="12.5"/>
@@ -585,12 +648,21 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="RadioButton">
+                    <ControlTemplate.Resources>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="Foreground" Value="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}"/>
+                        </Style>
+                        <Style TargetType="{x:Type emoji:TextBlock}">
+                            <Setter Property="Foreground" Value="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}"/>
+                        </Style>
+                    </ControlTemplate.Resources>
                     <!-- Borderless like everything else, which forces one real change: the chip can no
                          longer be Transparent. A transparent chip was VISIBLE only because of its
                          outline; without a fill of its own an unselected target would disappear. -->
                     <Border x:Name="b" CornerRadius="14" Padding="15,9" Margin="0,0,8,0"
                             Background="#12FFFFFF">
-                        <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                        <ContentPresenter TextElement.Foreground="{TemplateBinding Foreground}"
+                                          VerticalAlignment="Center" HorizontalAlignment="Center"/>
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
@@ -659,7 +731,7 @@
 
     <!-- Big start/stop button with colour states -->
     <Style x:Key="StartStopButton" TargetType="Button">
-        <Setter Property="Foreground" Value="White"/>
+        <Setter Property="Foreground" Value="#0A0A0C"/>
         <Setter Property="Background" Value="{StaticResource SuccessBrush}"/>
         <Setter Property="FontSize" Value="14"/>
         <Setter Property="FontWeight" Value="SemiBold"/>
@@ -669,6 +741,16 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Button">
+                    <ControlTemplate.Resources>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="Foreground" Value="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
+                            <Setter Property="FontWeight" Value="SemiBold"/>
+                        </Style>
+                        <Style TargetType="{x:Type emoji:TextBlock}">
+                            <Setter Property="Foreground" Value="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
+                            <Setter Property="FontWeight" Value="SemiBold"/>
+                        </Style>
+                    </ControlTemplate.Resources>
                     <!-- Grid rather than a single Border so the depth overlay can cover the whole
                          button: as a Border child it would sit inside Padding and leave a bright frame. -->
                     <Grid x:Name="b" RenderTransformOrigin="0.5,0.5">
@@ -676,6 +758,7 @@
                         <Border Background="{TemplateBinding Background}" CornerRadius="14"/>
                         <Border Background="{StaticResource ButtonDepth}" CornerRadius="14" IsHitTestVisible="False"/>
                         <ContentPresenter Margin="{TemplateBinding Padding}"
+                                          TextElement.Foreground="{TemplateBinding Foreground}"
                                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Grid>
                     <ControlTemplate.Triggers>
@@ -797,7 +880,7 @@
                                         <ColorAnimation Storyboard.TargetName="trackBorder" Storyboard.TargetProperty="Color"
                                                         To="{StaticResource C.Accent}" Duration="0:0:0.18"/>
                                         <ColorAnimation Storyboard.TargetName="thumbFill" Storyboard.TargetProperty="Color"
-                                                        To="White" Duration="0:0:0.18"/>
+                                                        To="#0A0A0C" Duration="0:0:0.18"/>
                                     </Storyboard>
                                 </BeginStoryboard>
                             </Trigger.EnterActions>

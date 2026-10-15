@@ -1,4 +1,4 @@
-﻿using System.IO;
+using System.IO;
 using System.IO.Compression;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -37,9 +37,9 @@ public sealed class UpdaterService
         // download survive the common RU failure where github.com opens but the release asset host
         // *.githubusercontent.com does not: the ISP poisons that one name in the system resolver, while
         // browsers (which do their own DoH) still reach it. Shared with the Tor download — see DohHttp.
-        _http = DohHttp.Create(TimeSpan.FromMinutes(10));
+        _http = DohHttp.Create(TimeSpan.FromSeconds(15));
         _http.DefaultRequestHeaders.UserAgent.Add(
-            new ProductInfoHeaderValue("Zapret2UI", "1.0"));
+            new ProductInfoHeaderValue("zapret_timosha", "1.0"));
         _http.DefaultRequestHeaders.Accept.Add(
             new MediaTypeWithQualityHeaderValue("application/vnd.github+json"));
     }
@@ -439,6 +439,7 @@ public sealed class UpdaterService
             string dst = Path.Combine(AppPaths.EngineDir, rel);
             Directory.CreateDirectory(Path.GetDirectoryName(dst)!);
             File.Copy(src, dst, overwrite: true);
+            Platform.ExclusionService.Unblock(dst);
         }
     }
 

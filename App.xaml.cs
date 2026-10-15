@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using System.Windows;
 using Zapret2UI.Harness;
 using Zapret2UI.Localization;
@@ -16,6 +16,8 @@ public partial class App : Application
     protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
+        if (Environment.ProcessPath is { } selfPath)
+            Zapret2UI.Services.Platform.ExclusionService.Unblock(selfPath);
         CrashLog.Install(this);
         AwaitPreviousCopy(e.Args);
         InitLanguage(e.Args);

@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using System.IO;
 using System.Text;
 using Zapret2UI.Localization;
@@ -67,6 +67,34 @@ public sealed partial class EngineService : IDisposable
     public event Action<EngineState>? StateChanged;
 
     public bool IsRunning => State == EngineState.Running;
+
+    /// <summary>Memory (WorkingSet64) of the running winws2 process in bytes, or 0 if stopped.</summary>
+    public long EngineMemoryBytes
+    {
+        get
+        {
+            try
+            {
+                var proc = _proc;
+                if (proc is { HasExited: false })
+                {
+                    proc.Refresh();
+                    return proc.WorkingSet64;
+                }
+            }
+            catch { }
+            return 0;
+        }
+    }
+
+    public bool IsEngineProcessAlive
+    {
+        get
+        {
+            try { return _proc is { HasExited: false }; }
+            catch { return false; }
+        }
+    }
 
     /// <summary>Build the full winws2 argument list for a preset (for preview/launch).
     /// <paramref name="forLaunch"/> must be true ONLY for a real engine start: it lets the

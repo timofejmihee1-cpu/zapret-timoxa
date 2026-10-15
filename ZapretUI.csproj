@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
@@ -8,13 +8,13 @@
     <UseWPF>true</UseWPF>
     <UseWindowsForms>true</UseWindowsForms>
     <LangVersion>latest</LangVersion>
-    <AssemblyName>Zapret2UI</AssemblyName>
+    <AssemblyName>zapret_timosha</AssemblyName>
     <RootNamespace>Zapret2UI</RootNamespace>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <Platforms>x64</Platforms>
     <PlatformTarget>x64</PlatformTarget>
     <Version>1.4.0</Version>
-    <Product>Zapret2UI</Product>
+    <Product>zapret_timosha</Product>
     <ApplicationIcon>Assets\app.ico</ApplicationIcon>
     <!-- Self-contained single-file publish so the user needs nothing installed -->
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>

@@ -1,4 +1,4 @@
-﻿{
+{
   "Сменить язык интерфейса?": "Change the interface language?",
   "Приложение перезапустится. Если обход или прокси запущены — они остановятся.": "The app will restart. If the bypass or the proxy is running, it will stop.",
   "Перезапустить": "Restart",
@@ -37,8 +37,10 @@
   "ЧТО ПОДОБРАТЬ": "WHAT TO SET UP",
   "Перебирает проверенные стратегии и оставляет ту, что открывает выбранные сервисы. Стабильнее генерации — начните с неё. Занимает минуту-другую.": "Works through proven strategies and keeps the one that opens the chosen services. Steadier than generation — start here. Takes a minute or two.",
   "🔎  Подобрать стратегию": "🔎  Select a strategy",
+  "Подобрать стратегию": "Select a strategy",
   "Собирает стратегию с нуля под вашего провайдера — отдельно под Discord и YouTube. Дольше и менее предсказуемо; используйте, если подбор не помог.": "Builds a strategy from scratch for your provider — separately for Discord and YouTube. Slower and less predictable; use it if selection did not help.",
   "✨  Сгенерировать стратегию": "✨  Generate a strategy",
+  "Сгенерировать стратегию": "Generate a strategy",
   "Сначала «Подобрать» — так стабильнее. «Сгенерировать» — если подбор не пробил.": "Try “Select” first — it is steadier. “Generate” — if selection did not break through.",
   "Включить встроенный прокси для Telegram": "Enable the built-in proxy for Telegram",
   "Адрес (MTProto-прокси)": "Address (MTProto proxy)",

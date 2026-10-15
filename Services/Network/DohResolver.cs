@@ -15,16 +15,17 @@ namespace Zapret2UI.Services.Network;
 public sealed class DohResolver : IDisposable
 {
     // JSON DoH endpoints reachable by IP literal (no bootstrap DNS needed): their TLS certs carry the
-    // IP as a SAN, so validation passes. Cloudflare answers JSON at /dns-query, Google at /resolve.
+    // IP as a SAN, so validation passes. Yandex and Cloudflare answer JSON at /dns-query, Google at /resolve.
     private static readonly string[] Endpoints =
     {
+        "https://77.88.8.8/dns-query",
         "https://1.1.1.1/dns-query",
         "https://8.8.8.8/resolve",
     };
 
-    private readonly HttpClient _http = new(new SocketsHttpHandler { ConnectTimeout = TimeSpan.FromSeconds(4) })
+    private readonly HttpClient _http = new(new SocketsHttpHandler { ConnectTimeout = TimeSpan.FromSeconds(2) })
     {
-        Timeout = TimeSpan.FromSeconds(6),
+        Timeout = TimeSpan.FromSeconds(3),
     };
 
     private readonly ConcurrentDictionary<string, (string[] Ips, long ExpiresTick)> _cache = new();

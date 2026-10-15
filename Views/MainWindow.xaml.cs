@@ -1,4 +1,4 @@
-﻿using System.Collections.Specialized;
+using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
@@ -27,10 +27,21 @@ public partial class MainWindow : Window
     private EngineState _lastState = EngineState.Stopped;
     private readonly ToastNotifier _toasts = new();
 
+    private readonly SolidColorBrush _simpleBrush = new(Color.FromRgb(0x0A, 0x0A, 0x0C));
+    private readonly SolidColorBrush _advancedBrush = new(Color.FromRgb(0xA1, 0xA1, 0xAA));
+    private static readonly Color ActiveModeTextColor = Color.FromRgb(0x0A, 0x0A, 0x0C);
+    private static readonly Color InactiveModeTextColor = Color.FromRgb(0xA1, 0xA1, 0xAA);
+    private static readonly Color HoverModeTextColor = Color.FromRgb(0xFF, 0xFF, 0xFF);
+
     public MainWindow()
     {
         InitializeComponent();
         DataContext = _vm;
+
+        RadioSimple.Foreground = _simpleBrush;
+        RadioAdvanced.Foreground = _advancedBrush;
+        ModeSwitchGrid.SizeChanged += (_, _) => UpdateModeIndicator(animate: false);
+        MainTabs.SizeChanged += (_, _) => UpdateTabIndicator(animate: false);
 
         _vm.LogLines.CollectionChanged += OnLogChanged;
         _vm.ProxyLogLines.CollectionChanged += OnProxyLogChanged;
@@ -78,6 +89,8 @@ public partial class MainWindow : Window
         // A start in the tray gets its Loaded only when the user first opens the window — long after the
         // start itself has run.
         if (!_started) await StartAsync(interactive: true);
+        UpdateModeIndicator(animate: false);
+        UpdateTabIndicator(animate: false);
     }
 
     /// <summary>What every launch does once: the tray icon, the startup advisories — only with the window
@@ -142,9 +155,26 @@ public partial class MainWindow : Window
     private void OnVmPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
         if (e.PropertyName is nameof(MainViewModel.State) or nameof(MainViewModel.SelectedPreset))
+        {
             UpdateTrayForState(_vm.State);
+        }
         else if (e.PropertyName == nameof(MainViewModel.UiScale))
+        {
             ApplyUiScale(_vm.UiScale);
+            Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Loaded, () =>
+            {
+                UpdateModeIndicator(animate: false);
+                UpdateTabIndicator(animate: false);
+            });
+        }
+        else if (e.PropertyName is nameof(MainViewModel.IsSimpleMode) or nameof(MainViewModel.IsAdvancedMode))
+        {
+            Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Loaded, () =>
+            {
+                UpdateModeIndicator(animate: true);
+                UpdateTabIndicator(animate: false);
+            });
+        }
     }
 
     // ---- app-wide UI scale (DPI-independent zoom) --------------------------
@@ -173,11 +203,14 @@ public partial class MainWindow : Window
         }
     }
 
-    // Fade + slight slide-up of the tab content when the user switches tabs.
+    // Fade + slight slide-up of the tab content when the user switches tabs, plus smooth sliding indicator.
     private void OnTabsSelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         // SelectionChanged also bubbles from inner ListBoxes — only react to the TabControl itself.
         if (e.OriginalSource is not TabControl) return;
+
+        UpdateTabIndicator(animate: true);
+
         if (MainTabs.Template?.FindName("PART_SelectedContentHost", MainTabs) is not ContentPresenter host)
             return;
 
@@ -188,6 +221,166 @@ public partial class MainWindow : Window
         host.RenderTransform = tt;
         tt.BeginAnimation(TranslateTransform.YProperty,
             new DoubleAnimation(10, 0, dur) { EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut } });
+    }
+
+    private void OnMainTabsLoaded(object sender, RoutedEventArgs e)
+    {
+        UpdateTabIndicator(animate: false);
+    }
+
+    private void UpdateTabIndicator(bool animate)
+    {
+        if (MainTabs.Template?.FindName("PART_TabIndicator", MainTabs) is not Border indicator)
+            return;
+
+        int idx = MainTabs.SelectedIndex;
+        if (idx < 0 || idx >= MainTabs.Items.Count) return;
+
+        var tabItem = MainTabs.ItemContainerGenerator.ContainerFromIndex(idx) as TabItem ?? MainTabs.Items[idx] as TabItem;
+        if (tabItem == null || !tabItem.IsLoaded || tabItem.ActualWidth <= 0)
+        {
+            Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Loaded, () => UpdateTabIndicator(animate));
+            return;
+        }
+
+        if (VisualTreeHelper.GetParent(indicator) is not FrameworkElement container)
+            return;
+
+        var border = tabItem.Template?.FindName("b", tabItem) as FrameworkElement ?? tabItem;
+        if (border.ActualWidth <= 0)
+        {
+            Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Loaded, () => UpdateTabIndicator(animate));
+            return;
+        }
+
+        Point p = border.TranslatePoint(new Point(0, 0), container);
+        double targetX = p.X;
+        double targetY = p.Y;
+        double targetW = border.ActualWidth;
+        double targetH = border.ActualHeight;
+
+        var transform = indicator.RenderTransform as TranslateTransform;
+        if (transform == null || transform.IsFrozen)
+        {
+            transform = new TranslateTransform();
+            indicator.RenderTransform = transform;
+        }
+
+        if (!animate || indicator.Opacity < 0.5)
+        {
+            transform.BeginAnimation(TranslateTransform.XProperty, null);
+            transform.BeginAnimation(TranslateTransform.YProperty, null);
+            indicator.BeginAnimation(WidthProperty, null);
+            indicator.BeginAnimation(HeightProperty, null);
+
+            transform.X = targetX;
+            transform.Y = targetY;
+            indicator.Width = targetW;
+            indicator.Height = targetH;
+            indicator.BeginAnimation(OpacityProperty,
+                new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(180)));
+        }
+        else
+        {
+            indicator.Opacity = 1;
+            var dur = TimeSpan.FromMilliseconds(260);
+            var ease = new CubicEase { EasingMode = EasingMode.EaseOut };
+
+            transform.BeginAnimation(TranslateTransform.XProperty,
+                new DoubleAnimation(transform.X, targetX, dur) { EasingFunction = ease });
+            transform.BeginAnimation(TranslateTransform.YProperty,
+                new DoubleAnimation(transform.Y, targetY, dur) { EasingFunction = ease });
+            indicator.BeginAnimation(WidthProperty,
+                new DoubleAnimation(indicator.ActualWidth, targetW, dur) { EasingFunction = ease });
+            indicator.BeginAnimation(HeightProperty,
+                new DoubleAnimation(indicator.ActualHeight, targetH, dur) { EasingFunction = ease });
+        }
+    }
+
+    private void OnModeCheckedChanged(object sender, RoutedEventArgs e)
+    {
+        UpdateModeIndicator(animate: true);
+        Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Loaded, () => UpdateTabIndicator(animate: false));
+    }
+
+    private void OnModeButtonMouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
+    {
+        if (sender is not RadioButton rb || rb.IsChecked == true) return;
+        var brush = rb == RadioSimple ? _simpleBrush : _advancedBrush;
+        brush.BeginAnimation(SolidColorBrush.ColorProperty,
+            new ColorAnimation(HoverModeTextColor, TimeSpan.FromMilliseconds(90))
+            {
+                EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
+            });
+    }
+
+    private void OnModeButtonMouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
+    {
+        if (sender is not RadioButton rb || rb.IsChecked == true) return;
+        var brush = rb == RadioSimple ? _simpleBrush : _advancedBrush;
+        brush.BeginAnimation(SolidColorBrush.ColorProperty,
+            new ColorAnimation(InactiveModeTextColor, TimeSpan.FromMilliseconds(130))
+            {
+                EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
+            });
+    }
+
+    private void UpdateModeIndicator(bool animate)
+    {
+        if (!IsLoaded || ModeSwitchGrid == null || ModeIndicator == null || RadioSimple == null || RadioAdvanced == null)
+            return;
+
+        bool isSimple = RadioSimple.IsChecked == true;
+        var targetRb = isSimple ? RadioSimple : RadioAdvanced;
+        var sourceRb = isSimple ? RadioAdvanced : RadioSimple;
+        var targetBrush = isSimple ? _simpleBrush : _advancedBrush;
+        var sourceBrush = isSimple ? _advancedBrush : _simpleBrush;
+
+        if (targetRb.ActualWidth <= 0)
+        {
+            Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Loaded, () => UpdateModeIndicator(animate));
+            return;
+        }
+
+        Point p = targetRb.TranslatePoint(new Point(0, 0), ModeSwitchGrid);
+        double targetX = p.X;
+        double targetWidth = targetRb.ActualWidth;
+
+        if (!animate || ModeIndicator.Opacity < 0.5)
+        {
+            ModeIndicatorTransform.BeginAnimation(TranslateTransform.XProperty, null);
+            ModeIndicatorTransform.X = targetX;
+            ModeIndicator.BeginAnimation(WidthProperty, null);
+            ModeIndicator.Width = targetWidth;
+            ModeIndicator.Opacity = 1;
+
+            sourceBrush.BeginAnimation(SolidColorBrush.ColorProperty, null);
+            sourceBrush.Color = InactiveModeTextColor;
+            targetBrush.BeginAnimation(SolidColorBrush.ColorProperty, null);
+            targetBrush.Color = ActiveModeTextColor;
+        }
+        else
+        {
+            var dur = TimeSpan.FromMilliseconds(240);
+            var ease = new CubicEase { EasingMode = EasingMode.EaseOut };
+
+            ModeIndicator.Opacity = 1;
+            ModeIndicatorTransform.BeginAnimation(TranslateTransform.XProperty,
+                new DoubleAnimation(ModeIndicatorTransform.X, targetX, dur) { EasingFunction = ease });
+            ModeIndicator.BeginAnimation(WidthProperty,
+                new DoubleAnimation(ModeIndicator.ActualWidth, targetWidth, dur) { EasingFunction = ease });
+
+            // Text color timing: source fades to inactive grey early; target turns dark black as the white pill arrives under it.
+            sourceBrush.BeginAnimation(SolidColorBrush.ColorProperty,
+                new ColorAnimation(InactiveModeTextColor, TimeSpan.FromMilliseconds(120)) { EasingFunction = ease });
+
+            var targetAnim = new ColorAnimation(ActiveModeTextColor, TimeSpan.FromMilliseconds(160))
+            {
+                BeginTime = TimeSpan.FromMilliseconds(70),
+                EasingFunction = ease
+            };
+            targetBrush.BeginAnimation(SolidColorBrush.ColorProperty, targetAnim);
+        }
     }
 
     // ---- window caption ----------------------------------------------------
@@ -249,7 +442,7 @@ public partial class MainWindow : Window
         {
             Icon = _iconIdle ?? Drawing.SystemIcons.Application,
             Visible = true,
-            Text = Loc.T("Zapret2UI — остановлен"),
+            Text = Loc.T("zapret_timosha — остановлен"),
             ContextMenuStrip = _trayMenu,
         };
         _tray.DoubleClick += (_, _) => ShowFromTray();
@@ -269,7 +462,7 @@ public partial class MainWindow : Window
             _ => Loc.T("остановлен"),
         };
         string? preset = _vm.SelectedPreset?.Name;
-        string text = $"Zapret2UI — {status}";
+        string text = $"zapret_timosha — {status}";
         if (running && !string.IsNullOrEmpty(preset)) text += $"\n{preset}";
         // NotifyIcon tooltip is capped at 127 chars.
         _tray.Text = text.Length > 127 ? text[..127] : text;
@@ -278,9 +471,9 @@ public partial class MainWindow : Window
 
         // Our own corner toast on settled transitions (replaces the Windows balloon tips).
         if (state == EngineState.Running && _lastState != EngineState.Running)
-            ShowToast("Zapret2UI", Loc.T("Обход включён"));
+            ShowToast("zapret_timosha", Loc.T("Обход включён"));
         else if (state == EngineState.Stopped && _lastState is EngineState.Running or EngineState.Stopping)
-            ShowToast("Zapret2UI", Loc.T("Обход выключен"));
+            ShowToast("zapret_timosha", Loc.T("Обход выключен"));
         _lastState = state;
     }
 
