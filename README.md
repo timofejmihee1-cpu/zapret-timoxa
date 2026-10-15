@@ -1,10 +1,10 @@
-﻿<div align="center">
+<div align="center">
 
 [EN](README.en.md "Read this in English") | **RU**
 
 <img src="Assets/app-256.png" width="96" alt="Zapret2UI"/>
 
-# Zapret2UI
+# zapret_timosha
 
 **Программа, которая одной кнопкой возвращает доступ к Discord, YouTube и Telegram на Windows.**
 
@@ -17,16 +17,14 @@
 </p>
 
 <p>
-  <a href="https://github.com/Asterlike/zapret2UI/releases/latest"><img alt="Версия" src="https://img.shields.io/github/v/release/Asterlike/zapret2UI?style=for-the-badge&labelColor=12151c&color=8B7FF5&display_name=release&label=%D0%B2%D0%B5%D1%80%D1%81%D0%B8%D1%8F"></a>
-  <a href="https://github.com/Asterlike/zapret2UI/releases"><img alt="Скачиваний" src="https://img.shields.io/github/downloads/Asterlike/zapret2UI/total?style=for-the-badge&labelColor=12151c&color=34D399&label=%D1%81%D0%BA%D0%B0%D1%87%D0%B8%D0%B2%D0%B0%D0%BD%D0%B8%D0%B9"></a>
-  <a href="https://github.com/Asterlike/zapret2UI/stargazers"><img alt="Звёзды" src="https://img.shields.io/github/stars/Asterlike/zapret2UI?style=for-the-badge&labelColor=12151c&color=F5A623&label=%D0%B7%D0%B2%D1%91%D0%B7%D0%B4%D1%8B"></a>
-  <a href="https://t.me/Zapret2UI"><img alt="Telegram" src="https://img.shields.io/badge/Telegram-Zapret2UI-2AABEE?style=for-the-badge&labelColor=12151c&logo=telegram&logoColor=white"></a>
+  <a href="https://github.com/timofejmihee1-cpu/zapret-timoxa/releases/latest"><img alt="Версия" src="https://img.shields.io/github/v/release/timofejmihee1-cpu/zapret-timoxa?style=for-the-badge&labelColor=12151c&color=FFFFFF&display_name=release&label=%D0%B2%D0%B5%D1%80%D1%81%D0%B8%D1%8F"></a>
+  <a href="https://github.com/timofejmihee1-cpu/zapret-timoxa/releases"><img alt="Скачиваний" src="https://img.shields.io/github/downloads/timofejmihee1-cpu/zapret-timoxa/total?style=for-the-badge&labelColor=12151c&color=FFFFFF&label=%D1%81%D0%BA%D0%B0%D1%87%D0%B8%D0%B2%D0%B0%D0%BD%D0%B8%D0%B9"></a>
 </p>
 
 <p>
-  <a href="https://github.com/Asterlike/zapret2UI/releases/latest"><img alt="Скачать последнюю версию" src="https://img.shields.io/badge/%D0%A1%D0%BA%D0%B0%D1%87%D0%B0%D1%82%D1%8C%20%D0%BF%D0%BE%D1%81%D0%BB%D0%B5%D0%B4%D0%BD%D1%8E%D1%8E%20%D0%B2%D0%B5%D1%80%D1%81%D0%B8%D1%8E-8B7FF5?style=for-the-badge&logo=github&logoColor=white"></a>
+  <a href="https://github.com/timofejmihee1-cpu/zapret-timoxa/releases/download/v1.0.0/zapret_timosha.exe"><img alt="Скачать zapret_timosha.exe" src="https://img.shields.io/badge/%D0%A1%D0%BA%D0%B0%D1%87%D0%B0%D1%82%D1%8C%20zapret__timosha.exe-FFFFFF?style=for-the-badge&logo=windows&logoColor=0A0A0C"></a>
   &nbsp;
-  <a href="https://asterlike.github.io/zapret2UI/"><img alt="Документация" src="https://img.shields.io/badge/%D0%94%D0%BE%D0%BA%D1%83%D0%BC%D0%B5%D0%BD%D1%82%D0%B0%D1%86%D0%B8%D1%8F-12151c?style=for-the-badge&logo=readthedocs&logoColor=8B7FF5"></a>
+  <a href="https://github.com/timofejmihee1-cpu/zapret-timoxa/releases/download/v1.0.0/zapret_timosha-v1.0.0.zip"><img alt="Скачать zip архив" src="https://img.shields.io/badge/%D0%A1%D0%BA%D0%B0%D1%87%D0%B0%D1%82%D1%8C%20.ZIP%20(75%20MB)-18181B?style=for-the-badge&logo=github&logoColor=white"></a>
 </p>
 
 Удобная оболочка для движка обхода блокировок [zapret2](https://github.com/bol-van/zapret2) (`winws2`).
